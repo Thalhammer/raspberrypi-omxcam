@@ -16,6 +16,8 @@ void omxcam__h264_init (omxcam_h264_settings_t* settings){
   settings->profile = OMXCAM_H264_AVC_PROFILE_HIGH;
   settings->inline_headers = OMXCAM_FALSE;
   settings->inline_motion_vectors = OMXCAM_FALSE;
+  settings->max_nal_size = 0;
+  settings->nal_separate = OMXCAM_FALSE;
 }
 
 int omxcam__h264_validate (omxcam_h264_settings_t* settings){
@@ -196,6 +198,33 @@ int omxcam__h264_configure_omx (omxcam_h264_settings_t* settings){
         "OMX_IndexParamBrcmVideoAVCInlineVectorsEnable: %s",
         omxcam__dump_OMX_ERRORTYPE (error));
     return -1;
+  }
+
+  if(settings->max_nal_size != 0) {
+    OMX_PARAM_U32TYPE nalsize_st;
+    omxcam__omx_struct_init (nalsize_st);
+    nalsize_st.nPortIndex = 201;
+    nalsize_st.nU32 = settings->max_nal_size;
+    if ((error = OMX_SetParameter (omxcam__ctx.video_encode.handle,
+        OMX_IndexConfigBrcmVideoEncodedSliceSize, &nalsize_st))){
+      omxcam__error ("OMX_SetParameter - "
+          "OMX_IndexConfigBrcmVideoEncodedSliceSize: %s",
+          omxcam__dump_OMX_ERRORTYPE (error));
+      return -1;
+    }
+  }
+
+  if(settings->nal_separate == OMXCAM_TRUE) {
+    OMX_CONFIG_BOOLEANTYPE nalsep_st;
+    omxcam__omx_struct_init (nalsep_st);
+    nalsep_st.bEnabled = 1;
+    if ((error = OMX_SetParameter (omxcam__ctx.video_encode.handle,
+        OMX_IndexParamBrcmNALSSeparate, &nalsep_st))){
+      omxcam__error ("OMX_SetParameter - "
+          "OMX_IndexParamBrcmNALSSeparate: %s",
+          omxcam__dump_OMX_ERRORTYPE (error));
+      return -1;
+    }
   }
   
   return 0;

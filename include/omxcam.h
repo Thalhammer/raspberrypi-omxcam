@@ -334,6 +334,8 @@ typedef struct {
   omxcam_avc_profile profile;
   omxcam_bool inline_headers;
   omxcam_bool inline_motion_vectors;
+  uint32_t max_nal_size;
+  omxcam_bool nal_separate;
 } omxcam_h264_settings_t;
 
 #define OMXCAM_COMMON_SETTINGS                                                 \
